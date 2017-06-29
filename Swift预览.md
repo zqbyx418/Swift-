@@ -22,7 +22,7 @@ myVariable = 50
 let myConstant = 42
 ```
 
-常量或者变量的类型必须和赋给它们的值的类型一样。但并不是每一次都能确定类型。当你创建常量或变量的同时赋值，那编译器就会推断它们的类型。上述例子中，编译器推断`myVariable`是整形，因为它的初始值是整形。
+常量或者变量的类型必须和赋给它们的值的类型一样。但并不是每一次都能确定类型。当你创建常量或变量的同时赋值，那编译器就会推断它们的类型。上述例子中，编译器推断`myVariable`是整型，因为它的初始值是整型。
 
 如果初始值不能提供足够的信息（或没有初始值），在变量名后面指定类型，用`:`隔开
 
@@ -159,7 +159,7 @@ let nickName: String? = nil
 let fullName: String = "John Appleseed"
 let informalGreeting = "Hi \(nickName ?? fullName)"
 ```
-`Switch`支持任何种类的数据和比较操作——不仅仅是整形或者等式。
+`Switch`支持任何种类的数据和比较操作——不仅仅是整型或者等式。
 ```
 let vegetable = "red pepper"
 switch vegetable {
@@ -266,7 +266,7 @@ func greet(person: String, lunch: String) -> String {
 }
 greet(person: "Bob", lunch: "猪")
 ```
-默认，函数使用参数名来做为参数的标签，在参数名之前自定义参数标签或者用`_`不用参数标签。
+默认，函数使用参数名来做为参数的标签，在参数名之前自定义参数标签或者用`_`省略参数标签。
 ```
 func greet(_ person: String, on day: String) -> String {
 	return "Hello \(person), today is \(day)."
