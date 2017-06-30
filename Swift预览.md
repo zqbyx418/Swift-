@@ -14,6 +14,7 @@
 ```
 
 ###简单值
+
 `let`声明常量`var`表示变量。在编译时期不需要知道常量值，但是它只能被赋值一次。也就是说，你可以用常量来表示这样一个值：有且仅有一次赋值，多次使用。
 
 ```
@@ -111,6 +112,7 @@ shoppingList = []
 occupations = [:]
 ```
 ###控制流程
+
 使用`if`和`switch`来控制条件，使用`for-in`，`while`和`repeat-while`来控制循环。不必非得把条件和循环的表达式放在括号里面，但后面的花括号是必须的。
 ```
 let individualScores = [75, 43, 103, 87, 12]
@@ -249,6 +251,7 @@ print(total)
 用`..<`创建一个省略其上限值的范围（相当于[n,m)），`...`来创建包含这两个值的范围（相当于[n,m]）。
 
 ###函数和闭包
+
 用`func`来声明一个函数。通过函数名和括号中的一系列参数来调用。用`->`将参数名称、类型与函数的返回类型分开。
 ```
 func greet(person: String, day: String) -> String {
@@ -361,6 +364,7 @@ print(mappedNumbers)
 ```
 
 ###对象和类
+
 使用类名创建一个类。在类中声明属性就像声明常量和变量一样，只不过它在类的上下文中。同样，方法和函数的声明也和平时一样。
 ```
 class Shape {
@@ -412,5 +416,171 @@ class NamedShape {
 如果需要在销毁对象之前做一些清理操作，用`deinit`来创建析构器（deinitializer） 。
 
 子类的类名后面跟上父类的类名，用`:`隔开。子类不需要继承任何标准的基类，因此可以根据需要添加或者省略父类。
+
+子类要想重写父类方法，需要在方法实现前面加上`override`,不加的话，编译器会报错。编译器也会检测不带`override`的方法，这些方法不会覆盖父类中的任何方法。
+```
+class Square: NamedShape {
+    var sideLength: Double
+    
+    init(sideLength: Double, name: String) {
+        self.sideLength = sideLength
+        super.init(name: name)
+        numberOfSides = 4
+    }
+    
+    func area() -> Double {
+        return sideLength * sideLength
+    }
+    
+    override func simpleDescription() -> String {
+        return "A square with sides of length \(sideLength)."
+    }
+}
+
+let test = Square(sideLength: 5.2, name: "my test square")
+test.area()
+test.simpleDescription()
+```
+```
+练习
+新建一个叫做 Circle 的类，继承自 NamedShape， 构造方法中有 radius 和 name 两个参数。 在 Circle类中实现 area() 和 simpleDescription() 方法。
+
+答：
+class Circle: NamedShape {
+    var radius: Double
+    
+    init(radius: Double, name: String){
+        self.radius = radius
+        super.init(name: name)
+    }
+    
+    func area() -> Double {
+        return radius * radius * M_PI_2
+    }
+    
+    override func simpleDescription() -> String {
+        return "A \(name)"
+    }
+}
+
+var circle = Circle(radius: 2, name: "circle")
+circle.area()
+circle.simpleDescription()
+```
+除了存储的简单属性之外，属性还有一个setter和getter。
+```
+class EquilateralTriangle: NamedShape {
+    var sideLength: Double = 0.0
+    
+    init(sideLength: Double, name: String) {
+        self.sideLength = sideLength
+        super.init(name: name)
+        numberOfSides = 3
+    }
+    
+    var perimeter: Double {
+        get {
+            return 3.0 * sideLength
+        }
+        
+        set {
+            sideLength = newValue / 3.0
+        }
+    }
+    
+    override func simpleDescription() -> String {
+        return "An equilateral triangle with sides of length \(sideLength)."
+    }
+}
+
+var triangle = EquilateralTriangle(sideLength: 3.1, name: "a triangle")
+print(triangle.perimeter)
+triangle.perimeter = 9.9
+print(triangle.sideLength)
+```
+在`perimeter`的setter方法中，传入的值默认叫`newValue`。你也可以在`set`后面加一个圆括号里面放入你想叫的名字来命名。
+
+注意 `EquilateralTriangle`类的构造方法有三步：
+1. 设置子类声明的属性值
+2. 调用父类的构造器
+3. 改变父类中定义的属性的值。此外，使用方法、getter方法、setter方法也能做到这一点
+
+如果不需要计算属性，但仍需要提供在设置新值之前和之后运行的代码，请使用`willSet`和`didSet`。
+在构造器之外，只要值改变，这个代码就会运行。例如，下面这个类，确保其三角形的边长总是和正方形的边长相等。
+```
+class TriangleAndSquare {
+    var triangle: EquilateralTriangle {
+        willSet {
+            square.sideLength = newValue.sideLength
+        }
+    }
+    
+    var square: Square {
+        willSet {
+            triangle.sideLength = newValue.sideLength
+        }
+    }
+    
+    init(size: Double, name: String) {
+        square = Square(sideLength: size, name: name)
+        triangle = EquilateralTriangle(sideLength: size, name: name)
+    }
+}
+
+var triangleAndSquare = TriangleAndSquare(size: 10, name: "another test shape")
+print(triangleAndSquare.square.sideLength)
+print(triangleAndSquare.triangle.sideLength)
+triangleAndSquare.square = Square(sideLength: 50, name: "larger square")
+print(triangleAndSquare.triangle.sideLength)
+print(triangleAndSquare.square.sideLength)
+```
+使用可选值时，在执行调方法、调属性或者下标操作之前，加上一个`?`。如果`?`前面这个值是`nil`，那么`?`后面的所有操作都会被忽略，所有值都是`nil`。如果不是空，这个可选值会被解包，用解包后的值来执行`?`后面的操作。在这两种情况下，整个表达式的值是可选的值。
+```
+let optionalSquare: Square? = Square(sideLength: 2.5, name: "iotional square")
+let sideLength = optionalSquare?.sideLength
+```
+
+###枚举和结构体
+
+使用`enum`来创建一个枚举。像类和其他所有类型一样，枚举可以有与他们相关联的方法
+```
+enum Rank: Int {
+    case ace = 1
+    case two, three, four, five, six, seven, eight, nine, ten
+    case jack, queen, king
+    func simpleDescription() -> String {
+        switch self {
+        case .ace:
+            return "ace"
+        case .jack:
+            return "jack"
+        case .queen:
+            return "queen"
+        case .king:
+            return "king"
+        default:
+            return String(self.rawValue)
+        }
+    }
+}
+let ace = Rank.ace
+let aceRawValue = ace.rawValue
+```
+```
+练习
+写一个函数来比较两个`Rank`的值，通过比较它们每一行的值。
+
+答：
+暂时不会
+```
+
+默认情况，Swift 会从零开始分配原始值，并每次增加一个，但可以通过显示指定值来改变这种行为。在上述例子中，`Ace`明确的给出了原始值1，其余的原始值按顺序分配。也可以使用字符串或者浮点型作为枚举的原始类型。使用`rawValue`属性访问枚举的值。
+
+使用`init?(rawValue:)`构造器来初始化一个枚举实例,参数传行数。如果有就返回对应的值，没有就返回空。
+```
+if let convertedRank = Rank(rawValue: 3){
+    let threeDescription = convertedRank.simpleDescription()
+}
+```
 
 
