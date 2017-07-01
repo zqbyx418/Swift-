@@ -804,6 +804,14 @@ extension Double {
 }
 print((-0.0).absoluteValue)
 ```
+可以像用其他类型的名字一样使用协议名——例如，使用不同的但符合某个协议的类型，创建一个对象的集合。当使用类型为协议类型的值时，协议之外定义的方法不可用。
+```
+let protocolValue: ExampleProtocol = a
+print(protocolValue.simpleDescription)
+//print(protocolValue.anotherProperty)    // 取消注释，去看错误提示
+错误提示是：ExampleProtocol 没有anotherProperty这个成员
+```
+即使`protocolValue`变量在运行时的类型是`SimpleClass`，编译器会把它当做`ExampleProtocol`来对待。这意味着你不能调用类在它实现的接口之外的方法或者属性。
 
 
 
