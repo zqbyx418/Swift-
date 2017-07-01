@@ -542,7 +542,7 @@ let sideLength = optionalSquare?.sideLength
 
 ###枚举和结构体
 
-使用`enum`来创建一个枚举。像类和其他所有类型一样，枚举可以有与他们相关联的方法
+使用`enum`来创建一个枚举。像类和其他所有类型一样，枚举可以包含方法。
 ```
 enum Rank: Int {
     case ace = 1
@@ -568,7 +568,7 @@ let aceRawValue = ace.rawValue
 ```
 ```
 练习
-写一个函数来比较两个`Rank`的值，通过比较它们每一行的值。
+写一个函数，通过比较它们的原始值来比较两个`Rank`的值。
 
 答：
 暂时不会
@@ -576,11 +576,46 @@ let aceRawValue = ace.rawValue
 
 默认情况，Swift 会从零开始分配原始值，并每次增加一个，但可以通过显示指定值来改变这种行为。在上述例子中，`Ace`明确的给出了原始值1，其余的原始值按顺序分配。也可以使用字符串或者浮点型作为枚举的原始类型。使用`rawValue`属性访问枚举的值。
 
-使用`init?(rawValue:)`构造器来初始化一个枚举实例,参数传行数。如果有就返回对应的值，没有就返回空。
+使用`init?(rawValue:)`构造器来初始化一个枚举实例,参数传原始值。如果有就返回对应的值，没有就返回空。
 ```
 if let convertedRank = Rank(rawValue: 3){
     let threeDescription = convertedRank.simpleDescription()
 }
 ```
+枚举的每一个`case`值都是实际的值，不仅仅是其原始值的另一种写法。事实上，不必提供一个没有意义的原始值。
+```
+enum Suit {
+    case spades, hearts, diamonds, clubs
+    func simpleDescription() -> String {
+        switch self {
+        case .spades:
+            return "spades"
+        case .hearts:
+            return "hearts"
+        case .diamonds:
+            return "diamonds"
+        case .clubs:
+            return "clubs"
+        }
+    }
+}
+let hearts = Suit.hearts
+let heartsDescription = hearts.simpleDescription()
+```
+```
+练习
+新增一个 color() 方法 让 Suit 为 clubs 和 spades 放回 "black"， hearts 和 diamonds 返回  red
+
+答：
+    func color() -> String {
+        switch self {
+        case .spades, .clubs:
+            return "black"
+        case .hearts, .diamonds:
+            return "red"
+        }
+    }
+```
+注意，上面列举了枚举`case`hearts的两种方式：当将一个值赋值给`hearts`常量，会通过全名来引用`Suit.hearts`，因为这个常量没有显式的确定类型。在当前switch中，可以通过简写`.hearts`来引用，因为`self`的值已经知道就是suit。 在值的类型已知的情况下，可以简写。
 
 
