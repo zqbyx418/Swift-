@@ -618,4 +618,193 @@ let heartsDescription = hearts.simpleDescription()
 ```
 注意，上面列举了枚举`case`hearts的两种方式：当将一个值赋值给`hearts`常量，会通过全名来引用`Suit.hearts`，因为这个常量没有显式的确定类型。在当前switch中，可以通过简写`.hearts`来引用，因为`self`的值已经知道就是suit。 在值的类型已知的情况下，可以简写。
 
+如果枚举具有原始值，则这些值将作为声明的一部分确定，这意味着特定枚举大小写的每个实例始终具有相同的原始值。枚举的另一种情况是赋值了——在创建实例时，确定这些值，并且每个实例的枚举情况可能会不同。可以把赋值这种行为看做把属性存在枚举实例中。例子：考虑到要从服务器获取日出和日落时间这种情况。服务器要么响应这个请求信息，要么返回一个错误描述。
+```
+enum ServerResponse {
+    case result(String, String)
+    case failure(String)
+}
+
+let success = ServerResponse.result("6.00 am", "8:09 pm")
+let failure = ServerResponse.failure("Out of cheese.")
+
+switch success {
+case let .result(sunrise, sunset):
+    print("Sunrise is at \(sunrise) and sunset is at \(sunset).")
+case let .failure(message):
+    print("Failure... \(message)")
+}
+```
+```
+练习
+为这个switch添加第三个case到 ServerResponse
+
+答：
+enum ServerResponse {
+    case result(String, String)
+    case failure(String)
+    case doing(String)
+}
+
+let success = ServerResponse.result("6.00 am", "8:09 pm")
+let failure = ServerResponse.failure("Out of cheese.")
+let doing = ServerResponse.doing("正在处理...")
+
+switch doing {
+case let .result(sunrise, sunset):
+    print("Sunrise is at \(sunrise) and sunset is at \(sunset).")
+case let .failure(message):
+    print("Failure... \(message)")
+case let .doing(message):
+    print("doing\(message)")
+}
+```
+注意，怎样从`ServerResponse`值中提取出日出和日落时间，来与switch中的case的值匹配。
+
+用`struct`来创建结构体。结构体和类一样，支持许多行为，包括方法和构造器。结构体和类最大的区别是在代码中传递的时候，结构体总是被拷贝，而类是引用传递。
+
+```
+enum Rank: Int {
+    case ace = 1
+    case two, three, four, five, six, seven, eight, nine, ten
+    case jack, queen, king
+    func simpleDescription() -> String {
+        switch self {
+        case .ace:
+            return "ace"
+        case .jack:
+            return "jack"
+        case .queen:
+            return "queen"
+        case .king:
+            return "king"
+        default:
+            return String(self.rawValue)
+        }
+    }
+}
+
+enum Suit {
+    case spades, hearts, diamonds, clubs
+    func simpleDescription() -> String {
+        switch self {
+        case .spades:
+            return "spades"
+        case .hearts:
+            return "hearts"
+        case .diamonds:
+            return "diamonds"
+        case .clubs:
+            return "clubs"
+        }
+    }
+}
+
+struct Card {
+    var rank: Rank
+    var suit: Suit
+    func simpleDescription() -> String {
+        return "The \(rank.simpleDescription()) of \(suit.simpleDescription))"
+    }
+}
+
+let threeOfSpades = Card(rank: .three, suit: .spades)
+let threeOfSpadesDescroption = threeOfSpades.simpleDescription()
+```
+```
+练习
+为 Card 新增一个方法，在创建一整张卡片时候就有花色和点数。
+
+答：
+let threeOfSpades = Card(rank: .three, suit: .spades) 不就是这个吗...
+```
+
+###协议和扩展
+
+用`protocol`来声明协议。
+```
+protocol ExampleProtocol {
+    var simpleDescription: String { get }
+    mutating func adjust()
+}
+```
+类、枚举、结构体都能使用协议。
+```
+protocol ExampleProtocol {
+    var simpleDescription: String { get }
+    mutating func adjust()
+}
+
+class SimpleClass: ExampleProtocol {
+    var simpleDescription: String = "A very simple class."
+    var anotherProperty: Int = 69105
+    func adjust() {
+        simpleDescription += " Now 100% adjusted."
+    }
+}
+var a = SimpleClass()
+a.adjust()
+let aDescription = a.simpleDescription
+
+struct SimpleStructure: ExampleProtocol {
+    var simpleDescription: String = "A simple structure"
+    mutating func adjust() {
+        simpleDescription += " (adjusted)"
+    }
+}
+var b = SimpleStructure()
+b.adjust()
+let bDescription = b.simpleDescription
+```
+```
+练习
+写一个遵循这个协议的枚举
+
+答：
+class SimpleEnum: ExampleProtocol {
+    var simpleDescription: String = "A simple enum"
+    func adjust() {
+        simpleDescription += " conforms to this protocol."
+    }
+}
+var c = SimpleEnum()
+c.adjust()
+let cDescription = c.simpleDescription
+```
+
+注意，在`SimpleStructure`的声明中使用`mutating`关键字来标记方法是为了修改这个结构体。`SimpleClass`的声明中，任何方法都不需要使用`mutating`来标记，因为类上的方法总是可以修改这个类。
+
+用`extension`来向一个已经存在的类型添加功能，比如新方法和计算属性。可以使用拓展来新增一个协议遵循一个声明在别处的类，甚至是从库或框架导入的类型。
+```
+extension Int: ExampleProtocol {
+    var simpleDescription:String {
+        return "The number \(self)"
+    }
+    mutating func adjust() {
+        self += 42
+    }
+}
+print(7.simpleDescription)
+```
+```
+练习
+为Double类型写一个拓展，添加一个绝对值属性。
+
+大：
+extension Double {
+    var absoluteValue: String {
+        if self > 0 {
+            return "The absoluteValue is \(self)"
+        }else if self == 0 {
+            return "The absoluteValue is 0"
+        }else {
+            return "The absoluteValue is \(-self)"
+        }
+    }
+}
+print((-0.0).absoluteValue)
+```
+
+
+
 
