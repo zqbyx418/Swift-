@@ -813,6 +813,151 @@ print(protocolValue.simpleDescription)
 ```
 即使`protocolValue`变量在运行时的类型是`SimpleClass`，编译器会把它当做`ExampleProtocol`来对待。这意味着你不能调用类在它实现的接口之外的方法或者属性。
 
+### 错误处理
 
+任何类型都可以用`Error`协议来表示错误。
+```
+enum PrintError: Error {
+    case outOfPaper
+    case noToner
+    case onFire
+}
+```
+用`throw`来抛出一个错误,使用`throws`来标记一个能抛出错误的函数。如果在一个函数中抛出一个错误，这个函数立即返回，调用函数的代码处理错误。
+```
+func send(job: Int, toPrinter printerName: String) throws -> String {
+    if printerName == "Never Has Tonner"{
+        throw PrintError.noToner
+    }
+    return "Job sent"
+}
+```
+有几个处理错误的方式。其中一个方法是用`do-catch`。在`do`这个块中，你通过在前面写`try`标记代码可用来抛出错误的代码。在`catch`块中，`error`将自动给出一个名称，除非你给它一个不同的名称。
+```
+do {
+    let printerResponse = try send(job: 1040, toPrinter: "Bi Sheng")
+    print(printerResponse)
+} catch {
+    print(error)
+}
+```
+```
+练习
+把打印名称改成"Never Has Toner"。让 send(job:toPrinter:)函数抛出错误
+
+答：
+do {
+    let printerResponse = try send(job: 1040, toPrinter: "Never Has Tonner")
+    print(printerResponse)
+} catch {
+    print(error)
+}
+// noToner
+```
+可以提供多个`catch`块来处理特殊的错误。就像switch的`case`一样的模式来写`catch`就行了。
+```
+do {
+    let printerResponse = try send(job: 1040, toPrinter: "Gutenberg")
+} catch PrinterError.onFire {
+    print("I'll just put this over here, with the rest of the fire.")
+} catch let printerError as PrinterError {
+    print("Printer error: \(printerError).")
+} catch {
+    print(error)
+}
+```
+```
+练习：
+在 do 块里加代码来抛出错误。需要抛出什么样的错误，以便错误由第一个catch块处理？第二个或者第三个块呢？
+
+答：
+暂时不会
+```
+另一种处理错误的方式是使用`try?`来改变一个可选值的结果。如果函数抛出错误，特殊错误将会被丢弃且返回值是`nil`。否则，可选值的结果包含函数的返回值。
+```
+let printerSuccess = try? send(job: 1884, toPrinter: "Mergenthaler")
+let printerFailure = try? send(job: 1885, toPrinter: "Never Has Toner")
+```
+用`defer`来写一个代码块，在函数返回前，且所有其他代码之后执行。无论函数是否抛出异常，代码都将被执行。可以用`defer`来写初始化和清除代码，即使需要在不同的时间执行。
+```
+var fridgeIsOpen = false
+let fridgeContent = ["milk","eggs","leftovers"]
+
+func fridgeContains(_ food: String) -> Bool {
+    fridgeIsOpen = true
+    defer {
+        fridgeIsOpen = false
+    }
+    
+    let result = fridgeContent.contains(food)
+    return result
+}
+
+fridgeContains("banana")
+print(fridgeIsOpen)
+```
+
+###泛型
+
+在尖括号中写一个名字来标记泛型的函数或者类型。
+```
+func makeArray<Item>(repeating item: Item, numberOfTimes: Int) -> [Item] {
+    var result = [Item]()
+    for _ in 0..<numberOfTimes {
+        result.append(item)
+    }
+    return result
+}
+
+makeArray(repeating: "knock", numberOfTimes: 4)
+```
+可以在函数、方法以及类、枚举和结构体中用泛型。
+```
+enum OptionalValue<Wrapped> {
+    case none
+    case some(Wrapped)
+}
+
+var possibleInteger: OptionalValue<Int> = .none
+possibleInteger = .some(100)
+```
+在类型名后面用`where`来指定一个需求列表——例如，要求实现一个协议的类型，限定两个类型要相同，或者限定必须有一个特点的父类。
+```
+func anyCommonElements<T: Sequence, U: Sequence>(_ lhs: T, _ rhs: U) -> Bool
+    where T.Iterator.Element: Equatable, T.Iterator.Element == U.Iterator.Element{
+        for lhsItem in lhs {
+            for rhsItem in rhs {
+                if lhsItem == rhsItem{
+                    return true
+                }
+            }
+        }
+        return false
+}
+
+anyCommonElements([1,2,3], [3])
+```
+```
+练习
+修改 anyCommonElements(_:_:) 函数来返回一个两个序列中共同存在的元素组成的数组。
+
+
+答：
+func anyCommonElements<T: Sequence, U: Sequence>(_ lhs: T, _ rhs: U) -> [Int]
+    where T.Iterator.Element: Equatable, T.Iterator.Element == U.Iterator.Element{
+        var commonArray = [Int]()
+        for lhsItem in lhs {
+            for rhsItem in rhs {
+                if lhsItem == rhsItem{
+                    commonArray.append(lhsItem as! Int)
+                }
+            }
+        }
+        return commonArray
+}
+
+anyCommonElements([1,2,3], [2,3,4])
+```
+`<T: Equatable>`和`<T ... where T: Equatable>`是等价的。
 
 
