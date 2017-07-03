@@ -542,7 +542,7 @@ let sideLength = optionalSquare?.sideLength
 
 ###枚举和结构体
 
-使用`enum`来创建一个枚举。像类和其他所有类型一样，枚举可以有与他们相关联的方法
+使用`enum`来创建一个枚举。像类和其他所有类型一样，枚举可以包含方法。
 ```
 enum Rank: Int {
     case ace = 1
@@ -568,7 +568,7 @@ let aceRawValue = ace.rawValue
 ```
 ```
 练习
-写一个函数来比较两个`Rank`的值，通过比较它们每一行的值。
+写一个函数，通过比较它们的原始值来比较两个`Rank`的值。
 
 答：
 暂时不会
@@ -576,11 +576,388 @@ let aceRawValue = ace.rawValue
 
 默认情况，Swift 会从零开始分配原始值，并每次增加一个，但可以通过显示指定值来改变这种行为。在上述例子中，`Ace`明确的给出了原始值1，其余的原始值按顺序分配。也可以使用字符串或者浮点型作为枚举的原始类型。使用`rawValue`属性访问枚举的值。
 
-使用`init?(rawValue:)`构造器来初始化一个枚举实例,参数传行数。如果有就返回对应的值，没有就返回空。
+使用`init?(rawValue:)`构造器来初始化一个枚举实例,参数传原始值。如果有就返回对应的值，没有就返回空。
 ```
 if let convertedRank = Rank(rawValue: 3){
     let threeDescription = convertedRank.simpleDescription()
 }
 ```
+枚举的每一个`case`值都是实际的值，不仅仅是其原始值的另一种写法。事实上，不必提供一个没有意义的原始值。
+```
+enum Suit {
+    case spades, hearts, diamonds, clubs
+    func simpleDescription() -> String {
+        switch self {
+        case .spades:
+            return "spades"
+        case .hearts:
+            return "hearts"
+        case .diamonds:
+            return "diamonds"
+        case .clubs:
+            return "clubs"
+        }
+    }
+}
+let hearts = Suit.hearts
+let heartsDescription = hearts.simpleDescription()
+```
+```
+练习
+新增一个 color() 方法 让 Suit 为 clubs 和 spades 放回 "black"， hearts 和 diamonds 返回  red
+
+答：
+    func color() -> String {
+        switch self {
+        case .spades, .clubs:
+            return "black"
+        case .hearts, .diamonds:
+            return "red"
+        }
+    }
+```
+注意，上面列举了枚举`case`hearts的两种方式：当将一个值赋值给`hearts`常量，会通过全名来引用`Suit.hearts`，因为这个常量没有显式的确定类型。在当前switch中，可以通过简写`.hearts`来引用，因为`self`的值已经知道就是suit。 在值的类型已知的情况下，可以简写。
+
+如果枚举具有原始值，则这些值将作为声明的一部分确定，这意味着特定枚举大小写的每个实例始终具有相同的原始值。枚举的另一种情况是赋值了——在创建实例时，确定这些值，并且每个实例的枚举情况可能会不同。可以把赋值这种行为看做把属性存在枚举实例中。例子：考虑到要从服务器获取日出和日落时间这种情况。服务器要么响应这个请求信息，要么返回一个错误描述。
+```
+enum ServerResponse {
+    case result(String, String)
+    case failure(String)
+}
+
+let success = ServerResponse.result("6.00 am", "8:09 pm")
+let failure = ServerResponse.failure("Out of cheese.")
+
+switch success {
+case let .result(sunrise, sunset):
+    print("Sunrise is at \(sunrise) and sunset is at \(sunset).")
+case let .failure(message):
+    print("Failure... \(message)")
+}
+```
+```
+练习
+为这个switch添加第三个case到 ServerResponse
+
+答：
+enum ServerResponse {
+    case result(String, String)
+    case failure(String)
+    case doing(String)
+}
+
+let success = ServerResponse.result("6.00 am", "8:09 pm")
+let failure = ServerResponse.failure("Out of cheese.")
+let doing = ServerResponse.doing("正在处理...")
+
+switch doing {
+case let .result(sunrise, sunset):
+    print("Sunrise is at \(sunrise) and sunset is at \(sunset).")
+case let .failure(message):
+    print("Failure... \(message)")
+case let .doing(message):
+    print("doing\(message)")
+}
+```
+注意，怎样从`ServerResponse`值中提取出日出和日落时间，来与switch中的case的值匹配。
+
+用`struct`来创建结构体。结构体和类一样，支持许多行为，包括方法和构造器。结构体和类最大的区别是在代码中传递的时候，结构体总是被拷贝，而类是引用传递。
+
+```
+enum Rank: Int {
+    case ace = 1
+    case two, three, four, five, six, seven, eight, nine, ten
+    case jack, queen, king
+    func simpleDescription() -> String {
+        switch self {
+        case .ace:
+            return "ace"
+        case .jack:
+            return "jack"
+        case .queen:
+            return "queen"
+        case .king:
+            return "king"
+        default:
+            return String(self.rawValue)
+        }
+    }
+}
+
+enum Suit {
+    case spades, hearts, diamonds, clubs
+    func simpleDescription() -> String {
+        switch self {
+        case .spades:
+            return "spades"
+        case .hearts:
+            return "hearts"
+        case .diamonds:
+            return "diamonds"
+        case .clubs:
+            return "clubs"
+        }
+    }
+}
+
+struct Card {
+    var rank: Rank
+    var suit: Suit
+    func simpleDescription() -> String {
+        return "The \(rank.simpleDescription()) of \(suit.simpleDescription))"
+    }
+}
+
+let threeOfSpades = Card(rank: .three, suit: .spades)
+let threeOfSpadesDescroption = threeOfSpades.simpleDescription()
+```
+```
+练习
+为 Card 新增一个方法，在创建一整张卡片时候就有花色和点数。
+
+答：
+let threeOfSpades = Card(rank: .three, suit: .spades) 不就是这个吗...
+```
+
+###协议和扩展
+
+用`protocol`来声明协议。
+```
+protocol ExampleProtocol {
+    var simpleDescription: String { get }
+    mutating func adjust()
+}
+```
+类、枚举、结构体都能使用协议。
+```
+protocol ExampleProtocol {
+    var simpleDescription: String { get }
+    mutating func adjust()
+}
+
+class SimpleClass: ExampleProtocol {
+    var simpleDescription: String = "A very simple class."
+    var anotherProperty: Int = 69105
+    func adjust() {
+        simpleDescription += " Now 100% adjusted."
+    }
+}
+var a = SimpleClass()
+a.adjust()
+let aDescription = a.simpleDescription
+
+struct SimpleStructure: ExampleProtocol {
+    var simpleDescription: String = "A simple structure"
+    mutating func adjust() {
+        simpleDescription += " (adjusted)"
+    }
+}
+var b = SimpleStructure()
+b.adjust()
+let bDescription = b.simpleDescription
+```
+```
+练习
+写一个遵循这个协议的枚举
+
+答：
+class SimpleEnum: ExampleProtocol {
+    var simpleDescription: String = "A simple enum"
+    func adjust() {
+        simpleDescription += " conforms to this protocol."
+    }
+}
+var c = SimpleEnum()
+c.adjust()
+let cDescription = c.simpleDescription
+```
+
+注意，在`SimpleStructure`的声明中使用`mutating`关键字来标记方法是为了修改这个结构体。`SimpleClass`的声明中，任何方法都不需要使用`mutating`来标记，因为类上的方法总是可以修改这个类。
+
+用`extension`来向一个已经存在的类型添加功能，比如新方法和计算属性。可以使用拓展来新增一个协议遵循一个声明在别处的类，甚至是从库或框架导入的类型。
+```
+extension Int: ExampleProtocol {
+    var simpleDescription:String {
+        return "The number \(self)"
+    }
+    mutating func adjust() {
+        self += 42
+    }
+}
+print(7.simpleDescription)
+```
+```
+练习
+为Double类型写一个拓展，添加一个绝对值属性。
+
+大：
+extension Double {
+    var absoluteValue: String {
+        if self > 0 {
+            return "The absoluteValue is \(self)"
+        }else if self == 0 {
+            return "The absoluteValue is 0"
+        }else {
+            return "The absoluteValue is \(-self)"
+        }
+    }
+}
+print((-0.0).absoluteValue)
+```
+可以像用其他类型的名字一样使用协议名——例如，使用不同的但符合某个协议的类型，创建一个对象的集合。当使用类型为协议类型的值时，协议之外定义的方法不可用。
+```
+let protocolValue: ExampleProtocol = a
+print(protocolValue.simpleDescription)
+//print(protocolValue.anotherProperty)    // 取消注释，去看错误提示
+错误提示是：ExampleProtocol 没有anotherProperty这个成员
+```
+即使`protocolValue`变量在运行时的类型是`SimpleClass`，编译器会把它当做`ExampleProtocol`来对待。这意味着你不能调用类在它实现的接口之外的方法或者属性。
+
+### 错误处理
+
+任何类型都可以用`Error`协议来表示错误。
+```
+enum PrintError: Error {
+    case outOfPaper
+    case noToner
+    case onFire
+}
+```
+用`throw`来抛出一个错误,使用`throws`来标记一个能抛出错误的函数。如果在一个函数中抛出一个错误，这个函数立即返回，调用函数的代码处理错误。
+```
+func send(job: Int, toPrinter printerName: String) throws -> String {
+    if printerName == "Never Has Tonner"{
+        throw PrintError.noToner
+    }
+    return "Job sent"
+}
+```
+有几个处理错误的方式。其中一个方法是用`do-catch`。在`do`这个块中，你通过在前面写`try`标记代码可用来抛出错误的代码。在`catch`块中，`error`将自动给出一个名称，除非你给它一个不同的名称。
+```
+do {
+    let printerResponse = try send(job: 1040, toPrinter: "Bi Sheng")
+    print(printerResponse)
+} catch {
+    print(error)
+}
+```
+```
+练习
+把打印名称改成"Never Has Toner"。让 send(job:toPrinter:)函数抛出错误
+
+答：
+do {
+    let printerResponse = try send(job: 1040, toPrinter: "Never Has Tonner")
+    print(printerResponse)
+} catch {
+    print(error)
+}
+// noToner
+```
+可以提供多个`catch`块来处理特殊的错误。就像switch的`case`一样的模式来写`catch`就行了。
+```
+do {
+    let printerResponse = try send(job: 1040, toPrinter: "Gutenberg")
+} catch PrinterError.onFire {
+    print("I'll just put this over here, with the rest of the fire.")
+} catch let printerError as PrinterError {
+    print("Printer error: \(printerError).")
+} catch {
+    print(error)
+}
+```
+```
+练习：
+在 do 块里加代码来抛出错误。需要抛出什么样的错误，以便错误由第一个catch块处理？第二个或者第三个块呢？
+
+答：
+暂时不会
+```
+另一种处理错误的方式是使用`try?`来改变一个可选值的结果。如果函数抛出错误，特殊错误将会被丢弃且返回值是`nil`。否则，可选值的结果包含函数的返回值。
+```
+let printerSuccess = try? send(job: 1884, toPrinter: "Mergenthaler")
+let printerFailure = try? send(job: 1885, toPrinter: "Never Has Toner")
+```
+用`defer`来写一个代码块，在函数返回前，且所有其他代码之后执行。无论函数是否抛出异常，代码都将被执行。可以用`defer`来写初始化和清除代码，即使需要在不同的时间执行。
+```
+var fridgeIsOpen = false
+let fridgeContent = ["milk","eggs","leftovers"]
+
+func fridgeContains(_ food: String) -> Bool {
+    fridgeIsOpen = true
+    defer {
+        fridgeIsOpen = false
+    }
+    
+    let result = fridgeContent.contains(food)
+    return result
+}
+
+fridgeContains("banana")
+print(fridgeIsOpen)
+```
+
+###泛型
+
+在尖括号中写一个名字来标记泛型的函数或者类型。
+```
+func makeArray<Item>(repeating item: Item, numberOfTimes: Int) -> [Item] {
+    var result = [Item]()
+    for _ in 0..<numberOfTimes {
+        result.append(item)
+    }
+    return result
+}
+
+makeArray(repeating: "knock", numberOfTimes: 4)
+```
+可以在函数、方法以及类、枚举和结构体中用泛型。
+```
+enum OptionalValue<Wrapped> {
+    case none
+    case some(Wrapped)
+}
+
+var possibleInteger: OptionalValue<Int> = .none
+possibleInteger = .some(100)
+```
+在类型名后面用`where`来指定一个需求列表——例如，要求实现一个协议的类型，限定两个类型要相同，或者限定必须有一个特点的父类。
+```
+func anyCommonElements<T: Sequence, U: Sequence>(_ lhs: T, _ rhs: U) -> Bool
+    where T.Iterator.Element: Equatable, T.Iterator.Element == U.Iterator.Element{
+        for lhsItem in lhs {
+            for rhsItem in rhs {
+                if lhsItem == rhsItem{
+                    return true
+                }
+            }
+        }
+        return false
+}
+
+anyCommonElements([1,2,3], [3])
+```
+```
+练习
+修改 anyCommonElements(_:_:) 函数来返回一个两个序列中共同存在的元素组成的数组。
+
+
+答：
+func anyCommonElements<T: Sequence, U: Sequence>(_ lhs: T, _ rhs: U) -> [Int]
+    where T.Iterator.Element: Equatable, T.Iterator.Element == U.Iterator.Element{
+        var commonArray = [Int]()
+        for lhsItem in lhs {
+            for rhsItem in rhs {
+                if lhsItem == rhsItem{
+                    commonArray.append(lhsItem as! Int)
+                }
+            }
+        }
+        return commonArray
+}
+
+anyCommonElements([1,2,3], [2,3,4])
+```
+`<T: Equatable>`和`<T ... where T: Equatable>`是等价的。
 
 
